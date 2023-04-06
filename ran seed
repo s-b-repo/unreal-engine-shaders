@@ -1,0 +1,105 @@
+// Random Shader for Unreal Engine
+// This shader generates a random color based on a seed value
+
+float4 PS_RandomShader(float2 UV : TEXCOORD0, uniform float Seed) : SV_Target
+{
+    float4 Color;
+
+    // Generate a random color using the seed value
+    float4 RandomColor = float4(frac(sin(dot(UV, float2(12.9898,78.233))) * Seed), 
+                                frac(sin(dot(UV, float2(94.6785, 43.6543))) * Seed),
+                                frac(sin(dot(UV, float2(41.2414, 93.3651))) * Seed), 1.0f);
+    
+    // Set the final color
+    Color = RandomColor;
+
+    return Color;
+}
+
+// Vertex shader just passes through vertex data
+float4 VS_RandomShader(float3 Pos : POSITION) : SV_Position
+{
+    return float4(Pos, 1.0f);
+}
+
+// Main entry point for the shader
+void MainShader(float2 UV : TEXCOORD0, out float4 OutColor : SV_Target, uniform float Seed)
+{
+    OutColor = PS_RandomShader(UV, Seed);
+}
+
+// Register the shader
+void RegisterShader()
+{
+    FGlobalShaderMap* ShaderMap = GetGlobalShaderMap(ERHIFeatureLevel::SM5);
+    TShaderMapRef<FShader_RandomShader> Shader(ShaderMap);
+
+    if (!IsValidRef(Shader))
+    {
+        Shader = ShaderMap->AddShader<FShader_RandomShader>();
+    }
+
+    SetGlobalShader(Shader->GetPixelShader());
+}
+
+// Declare the shader
+class FShader_RandomShader : public FGlobalShader
+{
+public:
+    FShader_RandomShader()
+    {
+        // Set the shader source
+        ShaderSource = R"(
+            struct FInput
+            {
+                float2 UV : TEXCOORD0;
+            };
+
+            struct FOutput
+            {
+                float4 Color : SV_Target;
+            };
+
+            uniform float Seed;
+
+            FOutput PS_Main(FInput Input)
+            {
+                FOutput Output;
+                MainShader(Input.UV, Output.Color, Seed);
+                return Output;
+            }
+
+            float4 VS_Main(float3 Pos : POSITION) : SV_Position
+            {
+                return VS_RandomShader(Pos);
+            }
+
+            FOutput PS_Debug(FInput Input)
+            {
+                FOutput Output;
+                Output.Color = float4(1, 0, 1, 1);
+                return Output;
+            }
+
+            float4 VS_Debug(float3 Pos : POSITION) : SV_Position
+            {
+                return float4(Pos, 1);
+            }
+
+            ENDCG
+        )";
+
+        // Set the shader type and compile it
+        Type = EShaderType::Pixel;
+        Frequency = SF_Pixel;
+
+        // Register the shader
+        RegisterShader();
+    }
+
+    // Declare input/output structures
+    DECLARE_GLOBAL_SHADER(FShader_RandomShader);
+};
+
+// Implement the shader
+IMPLEMENT_GLOBAL_SHADER(FShader_RandomShader, "/Project/Shaders/RandomShader.usf", "PS_Main", SF_Pixel);
