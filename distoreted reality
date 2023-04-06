@@ -1,0 +1,26 @@
+// Define the input parameters for the shader
+float3 ObjectPosition : POSITION;
+float2 UV : TEXCOORD0;
+
+// Define the distortion parameters
+float Amplitude = 0.1;
+float Frequency = 20.0;
+
+// Main function that applies the distortion effect
+float4 main() : COLOR
+{
+    // Calculate the distortion offset based on the object position and UV coordinates
+    float2 DistortionOffset = float2(
+        sin(ObjectPosition.x * Frequency) * Amplitude,
+        cos(ObjectPosition.y * Frequency) * Amplitude
+    );
+    
+    // Apply the distortion offset to the UV coordinates
+    float2 DistortedUV = UV + DistortionOffset;
+    
+    // Sample the texture using the distorted UV coordinates
+    float4 Color = Texture.Sample(DefaultSampler, DistortedUV);
+    
+    // Return the color with the applied distortion effect
+    return Color;
+}
