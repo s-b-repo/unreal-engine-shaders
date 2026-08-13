@@ -1,0 +1,8 @@
+# Unreal Engine .gitignore in case anyone imports these into a project.
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+*.tmp
+*.bak
+*.log
